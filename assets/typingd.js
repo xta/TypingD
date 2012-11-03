@@ -1,27 +1,45 @@
-$(document).ready(function() { // 2012 TypingD.js by rexfeng
-    /* Index of Components
-        -(set up)
-        -Game  
-          (define)
-          start
-          builder
-          buildLoadingMsg
-          detectFirst
-          detectEmpty
-          deleteChar
-          skipNext
-          loopNext
-          update
-          keyPress
-          wordBank
-          keycodeMap
-        -(initialize Game)
-    */
+
+$(document).ready(function () { // 2012 TypingD.js by rexfeng
+  //     /* Index of Components
+  //         -(set up)
+  //         -Game  
+  //           (define)
+  //           start => set initial params for new game
+
+  //           builder => builds the url hash array at start of each wave
+  //           buildLoadingMsg => builds non-game message arrays
+
+  //           detectFirst => get the first letter position in array (non "-")
+  //           detectEmpty => check if the whole url array is empty AKA only ("-")
+  //           deleteChar => deletes the first character
+  //           skipNext => trimmer of field if map is all "-"
+  //           loopNext => moves the letter position 1 down IF delay counter is right position
+
+  //           update => control logic
+
+  //           keyPress => keypress event handler
+  //           wordBank => builds a bank of words for a wave
+  //           keycodeMap => translate A-Z to keypress #
+
+  //         -(initialize Game)
+  //     */
+
+  // JS objects
+    // game instance MODEL
+    // url hash VIEW
+    // loop timekeeper CONTROLLER
+    
+    // wordbank LIB/Model
+    // keymap LIB/Model
 
   var Game;
-  var _bind = function(fn, a){ return function(){ return fn.apply(a, arguments); }; };
+  var _bind = function (fn, a) {
+    return function () {
+      return fn.apply(a, arguments);
+    };
+  };
 
-  Game = (function() {
+  Game = (function () {
     function Game() {
       this.keypress = _bind(this.keypress, this);
       this.update = _bind(this.update, this);
@@ -29,7 +47,7 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
     }
 
 
-    Game.prototype.start = function() {
+    Game.prototype.start = function () {
 
       this.refreshRate = 1000 / 60; // in milliseconds
 
@@ -38,10 +56,10 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
 
 this.spawnsPerWave = 1; // set # of words per wave
       this.totalWaves = 3;
-      this.maxSpawns = this.totalWaves * this.spawnsPerWave;
+      // this.maxSpawns = this.totalWaves * this.spawnsPerWave;
 
       this.currentWave = 1;
-      this.spawnsToDate = 0;
+      //this.spawnsToDate = 0;
 
       this.delayCounter = 0; // current delay counter
       this.delayMax = 11;
@@ -54,41 +72,38 @@ this.spawnsPerWave = 1; // set # of words per wave
     };
 
 
-    Game.prototype.builder = function() { // builder builds the url hash array at start of each wave
+    Game.prototype.builder = function () { // builder builds the url hash array at start of each wave
 
       this.url = [];
       var words = this.wordBank();
 
       // build background before words start
-      for (var i = 0; i < (this.mapSize-1); i++) {
+      for (var i = 0; i < (this.mapSize - 1); i++) {
         this.url.push("-");
       }
 
       for (var j = 0; j < words.length; j++) {
-
         // build the word, letter by letter
         for (var _j = 0; _j < words[j].length; _j++) {
           this.url.push(words[j].charAt(_j));
         }
 
         // append the buffer background separator
-        if (j !== (words.length) ) {
+        if (j !== (words.length)) {
           for (var _k = 0; _k < this.buffer; _k++) {
             this.url.push("-");
           }
         }
-
       }
-
       return this.url;
     };
 
 
-    Game.prototype.buildLoadingMsg = function(phrase) {
+    Game.prototype.buildLoadingMsg = function (phrase) {
 
       this.url = [];
       var xtimes = 0;
-      if ((this.mapSize - 10) > phrase.length ) {
+      if ((this.mapSize - 10) > phrase.length) {
         xtimes += (this.mapSize - phrase.length);
       } else {
         xtimes += 10;
@@ -108,7 +123,7 @@ this.spawnsPerWave = 1; // set # of words per wave
     };
 
 
-    Game.prototype.detectFirst = function() {
+    Game.prototype.detectFirst = function () {
       // get the first letter position in array (non "-")
       var firstPosition = 999; // set dummy
       for (var x = 0; x < this.url.length; x++) {
@@ -121,7 +136,7 @@ this.spawnsPerWave = 1; // set # of words per wave
     };
 
 
-    Game.prototype.detectEmpty = function() {
+    Game.prototype.detectEmpty = function () {
       // check if the whole url array is empty AKA only ("-")
 
       var isEmpty = true;
@@ -135,8 +150,8 @@ this.spawnsPerWave = 1; // set # of words per wave
     };
 
 
-    Game.prototype.deleteChar = function() {
-      
+    Game.prototype.deleteChar = function () {
+
       var first = this.detectFirst();
       if (first !== 999) {
         this.url[first] = "-";
@@ -144,18 +159,20 @@ this.spawnsPerWave = 1; // set # of words per wave
     };
 
 
-    Game.prototype.skipNext = function(cut) {
+    Game.prototype.skipNext = function (cut) {
       // if this.mapSize is all "-", then iterate array First Position - MapSize
       for (var x = 0; x < cut; x++)
-        var move = this.url.shift();
-        this.url.push(move);
+      var move = this.url.shift();
+      this.url.push(move);
     };
 
 
-    Game.prototype.loopNext = function() {
+    Game.prototype.loopNext = function () {
       // iterate the loop 1 cycle
-      
+
       if (this.delayCounter == 0) {
+// in wave 4, it builds another wave of words, even though it's not supposed to
+console.log(this.url);
         var move = this.url[0];
         this.url.shift();
         this.url.push(move);
@@ -168,80 +185,54 @@ this.spawnsPerWave = 1; // set # of words per wave
     };
 
 
-    Game.prototype.update = function() {
-    // check status of url, then adjust accordingly
-    
-// console.log("this.gameStatus: " + this.gameStatus);
-console.log("currentwave: " + this.currentwave);
-// console.log("total waves: " + this.totalWaves);
-// console.log("this.gameover: " + this.gameOver);
+    Game.prototype.update = function () {
 
-    if (this.gameStatus == true) {
+      // if game, then check
+        // check current wave number
+          // end game
+          // else +1 wave number
+        // check current word position
+          // if 0, then game over
+          // else, trim the board && set the trigger key
+          // else do nothing && set the trigger key
+      // else do nothing
 
-      if (this.detectEmpty() == true) {
+      // loop
 
-        if (this.currentWave == (this.totalWaves + 1)) {
-        
-          // gameover. Victory loadingMsg, option to restart
-            this.gameStatus = false;
-            this.gameOver = true;
-            this.buildLoadingMsg("The end! You won. :D Press (n) to play again.");
-            //document.title = "Typing of the DOM | by rfeng";
+      if (this.gameStatus) {
 
-        } else {
+          if (this.detectEmpty()) {
 
-          // else, build next wave
-            this.currentWave += 1;
-            this.delayMax -= 4;
-//this.spawnsPerWave += 5;
-            this.builder();
-            //document.title = "Wave " + this.currentWave + "\/" + this.totalWaves + " | Typing of the DOM";
-        }
+          } else {
+
+          } // end detectEmpty
 
       } else {
 
-        if (this.detectFirst() == 0) {
-          // if first == positon 0, then game over loadingMsg, option to restart
-          if (this.gameOver == false) {
-            this.gameStatus = false;
-            this.gameOver = true;
-            this.buildLoadingMsg("Game over! :( Press (n) to restart.");
-          }
+        // if gameStatus == false
+        //?????????
 
-        } else if (this.detectFirst() > this.mapSize) {
-          // skipNext to trim array
-            var cut = this.detectFirst() - this.mapSize;
-            this.skipNext(cut);
-            this.triggerKey = this.keycodeMap(this.url[this.detectFirst()]);
-        } else {
-          // else setup next key to trigger deletion switch
-            this.triggerKey = this.keycodeMap(this.url[this.detectFirst()]);
+      }
 
-        } // end detectFirst
-          
-      } // end detectEmpty
+      this.loopNext();
+      location.hash = this.url.slice(0, this.mapSize).join("");
 
-    } else {
-    // if gameStatus == false
-
-    }
-    
-    this.loopNext();
-    location.hash = this.url.slice(0,this.mapSize).join("");
-
-    // infinite loop controls
+      // infinite loop controls
       var timeDelay;
       var that = this;
-      var loopMethod = function() { that.update(); }
+      var loopMethod = function () {
+        that.update();
+      }
       timeDelay = window.setTimeout(loopMethod, this.refreshRate);
     };
 
 
-    Game.prototype.keypress = function(event) {
+    Game.prototype.keypress = function (event) {
 
       if (this.gameStatus == false) {
         switch (event.which) {
-          case 78: // n
+          case 78:
+            // n
             this.gameStatus = true;
             this.gameOver = false;
             this.builder();
@@ -261,174 +252,157 @@ console.log("currentwave: " + this.currentwave);
     }; // end Game.prototype.keypress
 
 
-    Game.prototype.wordBank = function() {
+    Game.prototype.wordBank = function () {
 
       var pick = [];
-      var bank = [
-                    "brain",
-                    "brainsssss",
-                    "sunflower",
-                    "home",
-                    "night",
-                    "creepy",
-                    "snack",
-                    "survive",
-                    "fitness",
-                    "ration",
-                    "military",
-                    "hero",
-                    "survivor",
-                    "texas",
-                    "backup",
-                    "blood",
-                    "viral",
-                    "weapon",
-                    "save",
-                    "windows",
-                    "fire",
-                    "light",
-                    "bandaid",
-                    "watch",
-                    "time",
-                    "sun",
-                    "solar",
-                    "patrol",
-                    "checkpoint",
-                    "guard",
-                    "tower",
-                    "freedom",
-                    "sanctuary",
-                    "garden",
-                    "man",
-                    "woman",
-                    "field",
-                    "zoo",
-                    "rat",
-                    "animal",
-                    "pets",
-                    "wild",
-                    "trap",
-                    "scary",
-                    "burden",
-                    "leader",
-                    "faster",
-                    "hope",
-                    "abandon",
-                    "mash",
-                    "monster"
-                 ];
+      var bank = ["brain", "brainsssss", "sunflower", "home", "night", "creepy", "snack", "survive", "fitness", "ration", "military", "hero", "survivor", "texas", "backup", "blood", "viral", "weapon", "save", "windows", "fire", "light", "bandaid", "watch", "time", "sun", "solar", "patrol", "checkpoint", "guard", "tower", "freedom", "sanctuary", "garden", "man", "woman", "field", "zoo", "rat", "animal", "pets", "wild", "trap", "scary", "burden", "leader", "faster", "hope", "abandon", "mash", "monster"];
       for (var i = 0; i < this.spawnsPerWave; i++) {
-        var rand = bank.splice( Math.floor( (Math.random() * bank.length) ),1);
+        var rand = bank.splice(Math.floor((Math.random() * bank.length)), 1);
         pick.push(rand[0]);
       }
-    return pick;
+      return pick;
     };
 
 
-    Game.prototype.keycodeMap = function(letter) {
+    Game.prototype.keycodeMap = function (letter) {
 
       var code;
       switch (letter) {
-          case "a":
-            code = 65;
-            break;
-          case "b":
-            code = 66;
-            break;
-          case "c":
-            code = 67;
-            break;
-          case "d":
-            code = 68;
-            break;
-          case "e":
-            code = 69;
-            break;
-          case "f":
-            code = 70;
-            break;
-          case "g":
-            code = 71;
-            break;
-          case "h":
-            code = 72;
-            break;
-          case "i":
-            code = 73;
-            break;
-          case "j":
-            code = 74;
-            break;
-          case "k":
-            code = 75;
-            break;
-          case "l":
-            code = 76;
-            break;
-          case "m":
-            code = 77;
-            break;
-          case "n":
-            code = 78;
-            break;
-          case "o":
-            code = 79;
-            break;
-          case "p":
-            code = 80;
-            break;
-          case "q":
-            code = 81;
-            break;
-          case "r":
-            code = 82;
-            break;
-          case "s":
-            code = 83;
-            break;
-          case "t":
-            code = 84;
-            break;
-          case "u":
-            code = 85;
-            break;
-          case "v":
-            code = 86;
-            break;
-          case "w":
-            code = 87;
-            break;
-          case "x":
-            code = 88;
-            break;
-          case "y":
-            code = 89;
-            break;
-          case "z":
-            code = 90;
-            break;
-        }
+        case "a":
+          code = 65;
+          break;
+        case "b":
+          code = 66;
+          break;
+        case "c":
+          code = 67;
+          break;
+        case "d":
+          code = 68;
+          break;
+        case "e":
+          code = 69;
+          break;
+        case "f":
+          code = 70;
+          break;
+        case "g":
+          code = 71;
+          break;
+        case "h":
+          code = 72;
+          break;
+        case "i":
+          code = 73;
+          break;
+        case "j":
+          code = 74;
+          break;
+        case "k":
+          code = 75;
+          break;
+        case "l":
+          code = 76;
+          break;
+        case "m":
+          code = 77;
+          break;
+        case "n":
+          code = 78;
+          break;
+        case "o":
+          code = 79;
+          break;
+        case "p":
+          code = 80;
+          break;
+        case "q":
+          code = 81;
+          break;
+        case "r":
+          code = 82;
+          break;
+        case "s":
+          code = 83;
+          break;
+        case "t":
+          code = 84;
+          break;
+        case "u":
+          code = 85;
+          break;
+        case "v":
+          code = 86;
+          break;
+        case "w":
+          code = 87;
+          break;
+        case "x":
+          code = 88;
+          break;
+        case "y":
+          code = 89;
+          break;
+        case "z":
+          code = 90;
+          break;
+      }
 
-    return code;
+      return code;
     };
 
-
-  return Game;
+    return Game;
   })();
 
-
-
-
   // initialize game
-    $(function() {
-      var game;
-      game = new Game();
-      return $(document).keydown(game.keypress);
-    });
-
-
-
-
-
+  $(function () {
+    var game;
+    game = new Game();
+    return $(document).keydown(game.keypress);
+  });
 
 }); // end doc ready
+
+
+
+  // if (this.detectFirst() == 0) {
+  //   // if first == positon 0, then game over loadingMsg, option to restart
+  //   if (this.gameOver == false) {
+  //     this.gameStatus = false;
+  //     this.gameOver = true;
+  //     this.buildLoadingMsg("Game over! :( Press (n) to restart.");
+  //   }
+
+  // } else if (this.detectFirst() > this.mapSize) {
+  //   // skipNext to trim array
+  //   var cut = this.detectFirst() - this.mapSize;
+  //   this.skipNext(cut);
+  //   this.triggerKey = this.keycodeMap(this.url[this.detectFirst()]);
+  // } else {
+  //   // else setup next key to trigger deletion switch
+  //   this.triggerKey = this.keycodeMap(this.url[this.detectFirst()]);
+
+  // } // end detectFirst
+
+
+
+  // if (this.currentWave == (this.totalWaves + 1)) {
+
+  //     // gameover. Victory loadingMsg, option to restart
+  //     this.gameStatus = false;
+  //     this.gameOver = true;
+  //     this.buildLoadingMsg("The end! You won. :D Press (n) to play again.");
+  //     //document.title = "Typing of the DOM | by rfeng";
+
+  //   } else {
+
+  //     console.log("current wave: " + this.currentWave);
+  //     console.log("total w:" + this.totalWaves);
+
+  //     // else, build next wave
+  //     this.currentWave += 1;
+  //     this.delayMax -= 4;
+  //     //this.spawnsPerWave += 5;
+  //     this.builder();
+  //     //document.title = "Wave " + this.currentWave + "\/" + this.totalWaves + " | Typing of the DOM";
+  //   }
