@@ -9,6 +9,7 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
           detectFirst
           detectEmpty
           deleteChar
+          skipNext
           loopNext
           update
           keyPress
@@ -35,15 +36,15 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
       this.mapSize = 75; // length of map
       this.buffer = 10; // set # of spaces between spawns
 
-      this.spawnsPerWave = 10; // set # of words per wave
-      this.maxSpawns = this.waves * this.spawn;
-      this.totalWaves = 2;
+this.spawnsPerWave = 1; // set # of words per wave
+      this.totalWaves = 3;
+      this.maxSpawns = this.totalWaves * this.spawnsPerWave;
 
       this.currentWave = 1;
       this.spawnsToDate = 0;
 
       this.delayCounter = 0; // current delay counter
-      this.delayMax = 10;
+      this.delayMax = 11;
 
       this.gameStatus = false; // if false, show loadingMessage, else, play game
       this.gameOver = false;
@@ -109,7 +110,6 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
 
     Game.prototype.detectFirst = function() {
       // get the first letter position in array (non "-")
-
       var firstPosition = 999; // set dummy
       for (var x = 0; x < this.url.length; x++) {
         if (this.url[x] !== "-") {
@@ -144,10 +144,18 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
     };
 
 
+    Game.prototype.skipNext = function(cut) {
+      // if this.mapSize is all "-", then iterate array First Position - MapSize
+      for (var x = 0; x < cut; x++)
+        var move = this.url.shift();
+        this.url.push(move);
+    };
+
+
     Game.prototype.loopNext = function() {
       // iterate the loop 1 cycle
       
-      if (this.delayCounter == 0){
+      if (this.delayCounter == 0) {
         var move = this.url[0];
         this.url.shift();
         this.url.push(move);
@@ -163,22 +171,31 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
     Game.prototype.update = function() {
     // check status of url, then adjust accordingly
     
+// console.log("this.gameStatus: " + this.gameStatus);
+console.log("currentwave: " + this.currentwave);
+// console.log("total waves: " + this.totalWaves);
+// console.log("this.gameover: " + this.gameOver);
+
     if (this.gameStatus == true) {
-    // if gameStatus == true
 
       if (this.detectEmpty() == true) {
 
-        if (this.currentWave == this.totalWaves) {
+        if (this.currentWave == (this.totalWaves + 1)) {
+        
           // gameover. Victory loadingMsg, option to restart
             this.gameStatus = false;
             this.gameOver = true;
             this.buildLoadingMsg("The end! You won. :D Press (n) to play again.");
+            //document.title = "Typing of the DOM | by rfeng";
+
         } else {
+
           // else, build next wave
             this.currentWave += 1;
-            this.delayMax -= 3;
-            this.spawnsPerWave += 5;
+            this.delayMax -= 4;
+//this.spawnsPerWave += 5;
             this.builder();
+            //document.title = "Wave " + this.currentWave + "\/" + this.totalWaves + " | Typing of the DOM";
         }
 
       } else {
@@ -191,6 +208,11 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
             this.buildLoadingMsg("Game over! :( Press (n) to restart.");
           }
 
+        } else if (this.detectFirst() > this.mapSize) {
+          // skipNext to trim array
+            var cut = this.detectFirst() - this.mapSize;
+            this.skipNext(cut);
+            this.triggerKey = this.keycodeMap(this.url[this.detectFirst()]);
         } else {
           // else setup next key to trigger deletion switch
             this.triggerKey = this.keycodeMap(this.url[this.detectFirst()]);
@@ -205,7 +227,7 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
     }
     
     this.loopNext();
-    location.hash = this.url.join("");
+    location.hash = this.url.slice(0,this.mapSize).join("");
 
     // infinite loop controls
       var timeDelay;
@@ -223,6 +245,7 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
             this.gameStatus = true;
             this.gameOver = false;
             this.builder();
+            //document.title = "Wave " + this.currentWave + "\/" + this.totalWaves + " | Typing of the DOM";
             break;
         }
       } else {
@@ -295,8 +318,8 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
                     "monster"
                  ];
       for (var i = 0; i < this.spawnsPerWave; i++) {
-        var rand = Math.floor( (Math.random()*bank.length) );
-        pick.push(bank[rand]);
+        var rand = bank.splice( Math.floor( (Math.random() * bank.length) ),1);
+        pick.push(rand[0]);
       }
     return pick;
     };
@@ -397,11 +420,11 @@ $(document).ready(function() { // 2012 TypingD.js by rexfeng
 
 
   // initialize game
-  $(function() {
-    var game;
-    game = new Game();
-    return $(document).keydown(game.keypress);
-  });
+    $(function() {
+      var game;
+      game = new Game();
+      return $(document).keydown(game.keypress);
+    });
 
 
 
