@@ -1,36 +1,4 @@
-
-$(document).ready(function () { // 2012 TypingD.js by rexfeng
-  //     /* Index of Components
-  //         -(set up)
-  //         -Game  
-  //           (define)
-  //           start => set initial params for new game
-
-  //           builder => builds the url hash array at start of each wave
-  //           buildLoadingMsg => builds non-game message arrays
-
-  //           detectFirst => get the first letter position in array (non "-")
-  //           detectEmpty => check if the whole url array is empty AKA only ("-")
-  //           deleteChar => deletes the first character
-  //           skipNext => trimmer of field if map is all "-"
-  //           loopNext => moves the letter position 1 down IF delay counter is right position
-
-  //           update => control logic
-
-  //           keyPress => keypress event handler
-  //           wordBank => builds a bank of words for a wave
-  //           keycodeMap => translate A-Z to keypress #
-
-  //         -(initialize Game)
-  //     */
-
-  // JS objects
-    // game instance MODEL
-    // url hash VIEW
-    // loop timekeeper CONTROLLER
-    
-    // wordbank LIB/Model
-    // keymap LIB/Model
+$(document).ready(function () { // 2012 TypingD.js by @rexfeng
 
   var Game;
   var _bind = function (fn, a) {
@@ -40,40 +8,35 @@ $(document).ready(function () { // 2012 TypingD.js by rexfeng
   };
 
   Game = (function () {
+
     function Game() {
       this.keypress = _bind(this.keypress, this);
       this.update = _bind(this.update, this);
       this.start();
     }
 
-
+    // set variables for start of new game
     Game.prototype.start = function () {
-
-      this.refreshRate = 1000 / 60; // in milliseconds
 
       this.mapSize = 75; // length of map
       this.buffer = 10; // set # of spaces between spawns
 
-this.spawnsPerWave = 1; // set # of words per wave
-      this.totalWaves = 3;
-      // this.maxSpawns = this.totalWaves * this.spawnsPerWave;
-
-      this.currentWave = 1;
-      //this.spawnsToDate = 0;
-
+      this.refreshRate = 1000 / 60; // in milliseconds
       this.delayCounter = 0; // current delay counter
-      this.delayMax = 11;
+      this.delayMax = 9; // warning: this line is key, it can break code
 
-      this.gameStatus = false; // if false, show loadingMessage, else, play game
-      this.gameOver = false;
+      this.spawnsPerWave = 10; // set # of words per wave
+      this.totalWaves = 3;
+      this.currentWave = 1;
+
+      this.gameStatus = false;
       this.buildLoadingMsg("Press (n) key to start.");
 
       return this.update();
     };
 
-
-    Game.prototype.builder = function () { // builder builds the url hash array at start of each wave
-
+    // builder builds the url hash array at start of each wave
+    Game.prototype.builder = function () {
       this.url = [];
       var words = this.wordBank();
 
@@ -82,13 +45,15 @@ this.spawnsPerWave = 1; // set # of words per wave
         this.url.push("-");
       }
 
+      // for each word
       for (var j = 0; j < words.length; j++) {
-        // build the word, letter by letter
-        for (var _j = 0; _j < words[j].length; _j++) {
-          this.url.push(words[j].charAt(_j));
-        }
 
-        // append the buffer background separator
+      // build the word, letter by letter
+      for (var _j = 0; _j < words[j].length; _j++) {
+        this.url.push(words[j].charAt(_j));
+      }
+
+      // append the buffer "-" separator between words
         if (j !== (words.length)) {
           for (var _k = 0; _k < this.buffer; _k++) {
             this.url.push("-");
@@ -98,19 +63,19 @@ this.spawnsPerWave = 1; // set # of words per wave
       return this.url;
     };
 
-
+    // builds loading message for when game mode is not running
     Game.prototype.buildLoadingMsg = function (phrase) {
 
       this.url = [];
-      var xtimes = 0;
+      var bufferSize = 0;
       if ((this.mapSize - 10) > phrase.length) {
-        xtimes += (this.mapSize - phrase.length);
+        bufferSize += (this.mapSize - phrase.length);
       } else {
-        xtimes += 10;
+        bufferSize += 10;
       }
 
-      // add "-" xtimes before phrase
-      for (var x = 0; x < xtimes; x++) {
+      // add "-" bufferSize before phrase
+      for (var x = 0; x < bufferSize; x++) {
         this.url.push('-');
       }
 
@@ -122,9 +87,9 @@ this.spawnsPerWave = 1; // set # of words per wave
       return this.url;
     };
 
-
+    // get the first letter position in array (non "-")
     Game.prototype.detectFirst = function () {
-      // get the first letter position in array (non "-")
+
       var firstPosition = 999; // set dummy
       for (var x = 0; x < this.url.length; x++) {
         if (this.url[x] !== "-") {
@@ -132,47 +97,31 @@ this.spawnsPerWave = 1; // set # of words per wave
           break;
         }
       }
+
       return firstPosition;
     };
 
-
-    Game.prototype.detectEmpty = function () {
-      // check if the whole url array is empty AKA only ("-")
-
-      var isEmpty = true;
-      for (var x = 0; x < this.url.length; x++) {
-        if (this.url[x] !== "-") {
-          isEmpty = false;
-          break;
-        }
-      }
-      return isEmpty;
-    };
-
-
     Game.prototype.deleteChar = function () {
-
+      
       var first = this.detectFirst();
+
       if (first !== 999) {
         this.url[first] = "-";
       }
     };
 
-
+    // if visible map is all "-", then reduce array by First Position - MapSize
     Game.prototype.skipNext = function (cut) {
-      // if this.mapSize is all "-", then iterate array First Position - MapSize
-      for (var x = 0; x < cut; x++)
-      var move = this.url.shift();
-      this.url.push(move);
+      for (var x = 0; x < cut; x++) {
+        var move = this.url.shift();
+        this.url.push(move);
+      }
     };
 
-
+    // moves the current loop (game or message) 1 space, with built-in slowdown
     Game.prototype.loopNext = function () {
-      // iterate the loop 1 cycle
 
       if (this.delayCounter == 0) {
-// in wave 4, it builds another wave of words, even though it's not supposed to
-console.log(this.url);
         var move = this.url[0];
         this.url.shift();
         this.url.push(move);
@@ -184,76 +133,90 @@ console.log(this.url);
       return this.url;
     };
 
-
+    // ***controls state of gameplay
     Game.prototype.update = function () {
 
-      // if game, then check
-        // check current wave number
-          // end game
-          // else +1 wave number
-        // check current word position
-          // if 0, then game over
-          // else, trim the board && set the trigger key
+      // if game==true, then check current map status (by getting closest/left char position)
+      if (this.gameStatus == true) {
+
+        var firstPosition = this.detectFirst();
+
+        // if no piece on board for all positions
+        if (firstPosition == 999) {
+
+          // +1 to current wave number, change wave configs, start new wave && set the trigger key
+            this.currentWave += 1;
+            this.delayMax -= 2; // warning: this line is key, it can break code
+            this.spawnsPerWave += 5;
+            this.builder();
+            this.triggerKey = this.keycodeMap(this.url[this.detectFirst()]);
+
+          // check if current wave == max wave +1, then WINNING game over
+          if (this.currentWave == (this.totalWaves + 1)) {
+            this.gameStatus = false;
+            this.buildLoadingMsg("The end! You won. :D Press (n) to play again.");
+          }
+        
+        // else if there are any pieces on board within map size
+        } else if (firstPosition <= this.mapSize) {
+
+          // if yes && closest character is at 0, then LOSING game over
+          if (firstPosition == 0) {
+            this.gameStatus = false;
+            this.buildLoadingMsg("Game over! :( Press (n) to restart.");
+
           // else do nothing && set the trigger key
-      // else do nothing
-
-      // loop
-
-      if (this.gameStatus) {
-
-          if (this.detectEmpty()) {
-
           } else {
-
-          } // end detectEmpty
-
-      } else {
-
-        // if gameStatus == false
-        //?????????
-
+            this.triggerKey = this.keycodeMap(this.url[this.detectFirst()]);
+          }
+        
+        // else, trim the board && set the trigger key
+        } else {
+          var cut = this.detectFirst() - this.mapSize;
+          this.skipNext(cut);
+          this.triggerKey = this.keycodeMap(this.url[this.detectFirst()]);
       }
 
-      this.loopNext();
-      location.hash = this.url.slice(0, this.mapSize).join("");
+      // else if game!=true, set defaults for new game
+      } else {
+        this.currentWave = 1;
+        this.delayMax = 9;
+        this.spawnsPerWave = 10;
+      }
+
+      // loop current state
+        this.loopNext();
+        location.hash = this.url.slice(0, this.mapSize).join("");
 
       // infinite loop controls
-      var timeDelay;
-      var that = this;
-      var loopMethod = function () {
-        that.update();
-      }
-      timeDelay = window.setTimeout(loopMethod, this.refreshRate);
+        var timeDelay;
+        var that = this;
+        var loopMethod = function () {
+          that.update();
+        }
+        timeDelay = window.setTimeout(loopMethod, this.refreshRate);
     };
 
-
+    // handles keypress event
     Game.prototype.keypress = function (event) {
-
       if (this.gameStatus == false) {
         switch (event.which) {
-          case 78:
-            // n
+          case 78: // n
             this.gameStatus = true;
-            this.gameOver = false;
             this.builder();
-            //document.title = "Wave " + this.currentWave + "\/" + this.totalWaves + " | Typing of the DOM";
             break;
         }
       } else {
         // update keypress trigger
-
         switch (event.which) {
           case this.triggerKey:
             this.deleteChar();
             break;
         }
-
       }
-    }; // end Game.prototype.keypress
-
+    };
 
     Game.prototype.wordBank = function () {
-
       var pick = [];
       var bank = ["brain", "brainsssss", "sunflower", "home", "night", "creepy", "snack", "survive", "fitness", "ration", "military", "hero", "survivor", "texas", "backup", "blood", "viral", "weapon", "save", "windows", "fire", "light", "bandaid", "watch", "time", "sun", "solar", "patrol", "checkpoint", "guard", "tower", "freedom", "sanctuary", "garden", "man", "woman", "field", "zoo", "rat", "animal", "pets", "wild", "trap", "scary", "burden", "leader", "faster", "hope", "abandon", "mash", "monster"];
       for (var i = 0; i < this.spawnsPerWave; i++) {
@@ -263,9 +226,8 @@ console.log(this.url);
       return pick;
     };
 
-
+    // convert a-z to proper keypress event #
     Game.prototype.keycodeMap = function (letter) {
-
       var code;
       switch (letter) {
         case "a":
@@ -355,54 +317,10 @@ console.log(this.url);
   })();
 
   // initialize game
-  $(function () {
-    var game;
-    game = new Game();
-    return $(document).keydown(game.keypress);
-  });
+    $(function () {
+      var game;
+      game = new Game();
+      return $(document).keydown(game.keypress);
+    });
 
 }); // end doc ready
-
-
-
-  // if (this.detectFirst() == 0) {
-  //   // if first == positon 0, then game over loadingMsg, option to restart
-  //   if (this.gameOver == false) {
-  //     this.gameStatus = false;
-  //     this.gameOver = true;
-  //     this.buildLoadingMsg("Game over! :( Press (n) to restart.");
-  //   }
-
-  // } else if (this.detectFirst() > this.mapSize) {
-  //   // skipNext to trim array
-  //   var cut = this.detectFirst() - this.mapSize;
-  //   this.skipNext(cut);
-  //   this.triggerKey = this.keycodeMap(this.url[this.detectFirst()]);
-  // } else {
-  //   // else setup next key to trigger deletion switch
-  //   this.triggerKey = this.keycodeMap(this.url[this.detectFirst()]);
-
-  // } // end detectFirst
-
-
-
-  // if (this.currentWave == (this.totalWaves + 1)) {
-
-  //     // gameover. Victory loadingMsg, option to restart
-  //     this.gameStatus = false;
-  //     this.gameOver = true;
-  //     this.buildLoadingMsg("The end! You won. :D Press (n) to play again.");
-  //     //document.title = "Typing of the DOM | by rfeng";
-
-  //   } else {
-
-  //     console.log("current wave: " + this.currentWave);
-  //     console.log("total w:" + this.totalWaves);
-
-  //     // else, build next wave
-  //     this.currentWave += 1;
-  //     this.delayMax -= 4;
-  //     //this.spawnsPerWave += 5;
-  //     this.builder();
-  //     //document.title = "Wave " + this.currentWave + "\/" + this.totalWaves + " | Typing of the DOM";
-  //   }
